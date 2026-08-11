@@ -153,6 +153,35 @@ def render_timeline_controls() -> None:
                         st.error("Check the confirmation box first.")
 
 
+def trigger_confetti_and_sound():
+    import streamlit.components.v1 as components
+    st.balloons()
+    js = """
+    <script>
+    try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+        osc.connect(gainNode);
+        gainNode.connect(ctx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+        osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
+        osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3);
+        osc.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.45);
+        gainNode.gain.setValueAtTime(0, ctx.currentTime);
+        gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+        gainNode.gain.setValueAtTime(0.5, ctx.currentTime + 0.4);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+        osc.start(ctx.currentTime);
+        osc.stop(ctx.currentTime + 1.5);
+    } catch(e) {}
+    </script>
+    """
+    components.html(js, height=0, width=0)
+
+
+
 def render_timeline_grid() -> None:
     """Render spreadsheet-like daily task timeline grid with priorities, recurrence indicators, and interactive checkboxes."""
     dates = get_dates()
@@ -162,6 +191,18 @@ def render_timeline_grid() -> None:
     from src.data.workspace_store import get_active_workspace
     active_ws = get_active_workspace()
     completion_matrix = active_ws.get("completion") or {}
+
+    today = date.today()
+    today_iso = today.isoformat()
+    daily_today = get_daily_completion(today, tasks_list=tasks, completion_matrix=completion_matrix)
+    confetti_key = f"confetti_today_{ws_id}_{today_iso}"
+    
+    if daily_today["percentage"] == 100 and daily_today["total"] > 0:
+        if not st.session_state.get(confetti_key, False):
+            trigger_confetti_and_sound()
+            st.session_state[confetti_key] = True
+    else:
+        st.session_state[confetti_key] = False
 
     if not tasks:
         st.markdown(
@@ -297,36 +338,81 @@ def render_timeline_grid() -> None:
                 badge_text = "0%"
 
             with row_cols[-1]:
-                st.markdown(
-                    f'<div style="padding:0.35rem 0; text-align:center;"><span class="neo-badge {badge_class}" style="font-size:0.8rem; margin:0;">{badge_text}</span></div>',
-                    unsafe_allow_html=True,
-                )
+                if pct == 100 and d == today:
+                    st.markdown(
+                        f'<div style="padding:0.35rem 0; text-align:center;"><span id="badge_100_today" class="neo-badge {badge_class}" style="font-size:0.8rem; margin:0; cursor:pointer;" title="Click to celebrate!">{badge_text}</span></div>',
+                        unsafe_allow_html=True,
+                    )
+                else:
+                    st.markdown(
+                        f'<div style="padding:0.35rem 0; text-align:center;"><span class="neo-badge {badge_class}" style="font-size:0.8rem; margin:0;">{badge_text}</span></div>',
+                        unsafe_allow_html=True,
+                    )
 
             st.markdown(
                 '<div style="border-bottom: 2px solid var(--divider); margin: 0.3rem 0 0.5rem 0;"></div>',
                 unsafe_allow_html=True,
             )
 
-    # Auto-scroll internal date container to TODAY on load
-    st.components.v1.html(
+    import streamlit.components.v1 as components
+    components.html(
         """
         <script>
-            function scrollToToday() {
-                try {
-                    const todayEl = window.parent.document.getElementById('timeline-today-row');
-                    if (todayEl) {
-                        todayEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                    }
-                } catch (e) {
-                    console.log('Auto-scroll to TODAY:', e);
+            function attachConfetti() {
+                const badge = window.parent.document.getElementById("badge_100_today");
+                if (badge && !badge.dataset.confettiAttached) {
+                    badge.dataset.confettiAttached = "true";
+                    badge.onclick = function() {
+                        try {
+                            const ctx = new (window.parent.AudioContext || window.parent.webkitAudioContext)();
+                            const osc = ctx.createOscillator();
+                            const gainNode = ctx.createGain();
+                            osc.connect(gainNode);
+                            gainNode.connect(ctx.destination);
+                            osc.type = 'sine';
+                            osc.frequency.setValueAtTime(523.25, ctx.currentTime);
+                            osc.frequency.setValueAtTime(659.25, ctx.currentTime + 0.15);
+                            osc.frequency.setValueAtTime(783.99, ctx.currentTime + 0.3);
+                            osc.frequency.setValueAtTime(1046.50, ctx.currentTime + 0.45);
+                            gainNode.gain.setValueAtTime(0, ctx.currentTime);
+                            gainNode.gain.linearRampToValueAtTime(0.5, ctx.currentTime + 0.05);
+                            gainNode.gain.setValueAtTime(0.5, ctx.currentTime + 0.4);
+                            gainNode.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 1.5);
+                            osc.start(ctx.currentTime);
+                            osc.stop(ctx.currentTime + 1.5);
+
+                            const script = window.parent.document.createElement("script");
+                            script.src = "https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js";
+                            script.onload = function() {
+                                window.parent.confetti({
+                                    particleCount: 150,
+                                    spread: 90,
+                                    origin: { y: 0.6 }
+                                });
+                            };
+                            window.parent.document.head.appendChild(script);
+                        } catch(e) {}
+                    };
                 }
             }
-            setTimeout(scrollToToday, 150);
+            
+            function scrollToToday() {
+                const els = window.parent.document.querySelectorAll('div[data-testid="stMarkdownContainer"] strong');
+                for (let el of els) {
+                    if (el.innerText.includes("TODAY")) {
+                        el.scrollIntoView({ behavior: "smooth", block: "center" });
+                        break;
+                    }
+                }
+            }
+            
+            setTimeout(attachConfetti, 500);
+            setTimeout(scrollToToday, 500);
         </script>
         """,
         height=0,
+        width=0,
     )
-
     st.markdown('</div>', unsafe_allow_html=True)
 
 
