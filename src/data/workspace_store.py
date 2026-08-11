@@ -169,7 +169,7 @@ def create_workspace(name: str, description: str = "") -> tuple[bool, str, str |
 
     new_id = f"ws_{uuid.uuid4().hex[:8]}"
     today = date.today()
-    initial_dates = [today + timedelta(days=i) for i in range(-7, 7)]
+    initial_dates = [today]
 
     new_ws = {
         "id": new_id,

@@ -163,7 +163,7 @@ def create_workspace(user_id: str, name: str, description: str = "", daily_targe
             raise ValueError("Maximum limit of 10 workspaces reached.")
 
         today = date.today()
-        initial_dates = [(today + timedelta(days=i)).isoformat() for i in range(-7, 7)]
+        initial_dates = [today.isoformat()]
         ws_id = f"ws_{uuid.uuid4().hex[:8]}"
 
         ws = Workspace(

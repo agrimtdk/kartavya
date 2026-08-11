@@ -65,7 +65,7 @@ def init_task_store() -> None:
         return
 
     if "dates" not in active_ws:
-        active_ws["dates"] = [date.today() + timedelta(days=i) for i in range(-7, 7)]
+        active_ws["dates"] = [date.today()]
     if "tasks" not in active_ws:
         active_ws["tasks"] = []
     if "completion" not in active_ws:
