@@ -37,7 +37,11 @@ def save_all_stores() -> None:
         save_data(workspaces, active_ws_id, reminders)
 
 
-def init_workspace_store() -> None:
+def init_workspace_store(force: bool = False) -> None:
+    if force:
+        if SESSION_KEY_WORKSPACES in st.session_state:
+            del st.session_state[SESSION_KEY_WORKSPACES]
+    
     if (
         SESSION_KEY_WORKSPACES in st.session_state
         and SESSION_KEY_ACTIVE_WS_ID in st.session_state
@@ -148,8 +152,8 @@ def create_workspace(name: str, description: str = "") -> tuple[bool, str, str |
     if user:
         try:
             new_ws = db_create_workspace(user["id"], name, description)
+            init_workspace_store(force=True)
             st.session_state[SESSION_KEY_ACTIVE_WS_ID] = new_ws["id"]
-            init_workspace_store()
             return True, f"Workspace '{name}' created successfully.", new_ws["id"]
         except Exception as e:
             return False, str(e), None
@@ -194,7 +198,7 @@ def rename_workspace(ws_id: str, new_name: str, new_description: str = "") -> tu
     if user:
         res = db_update_workspace(user["id"], ws_id, {"name": trimmed_name, "description": new_description.strip()})
         if res:
-            init_workspace_store()
+            init_workspace_store(force=True)
             return True, "Workspace updated successfully."
         return False, "Workspace not found or unauthorized."
 
@@ -217,11 +221,7 @@ def delete_workspace(ws_id: str) -> tuple[bool, str]:
         try:
             ok = db_delete_workspace(user["id"], ws_id)
             if ok:
-                # Refresh session workspaces
-                ws_list = db_get_user_workspaces(user["id"])
-                if ws_list:
-                    st.session_state[SESSION_KEY_ACTIVE_WS_ID] = ws_list[0]["id"]
-                init_workspace_store()
+                init_workspace_store(force=True)
                 return True, "Workspace deleted successfully."
             return False, "Workspace not found or unauthorized."
         except Exception as e:

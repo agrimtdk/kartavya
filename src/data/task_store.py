@@ -287,7 +287,7 @@ def add_task(
 
     if user:
         t_dict = db_create_task(user["id"], ws_id, trimmed_name, priority, description, rec)
-        init_workspace_store()
+        init_workspace_store(force=True)
         return True, f"Task '{trimmed_name}' added successfully."
 
     task_id = f"task_{ws_id}_{uuid.uuid4().hex[:8]}"
@@ -362,7 +362,7 @@ def update_task_metadata(
             {"name": trimmed_name, "priority": priority, "description": description, "recurrence": recurrence},
         )
         if res:
-            init_workspace_store()
+            init_workspace_store(force=True)
             return True, "Task updated successfully."
         return False, "Task not found or unauthorized."
 
@@ -382,7 +382,7 @@ def update_task_metadata(
     return True, "Task updated successfully."
 
 
-def remove_task(task_id: str) -> bool:
+def remove_task(task_id: str) -> tuple[bool, str]:
     """Removes a task from active workspace."""
     active_ws = get_active_workspace()
     ws_id = active_ws["id"]
@@ -391,9 +391,9 @@ def remove_task(task_id: str) -> bool:
     if user:
         ok = db_delete_task(user["id"], ws_id, task_id)
         if ok:
-            init_workspace_store()
-            return True
-        return False
+            init_workspace_store(force=True)
+            return True, "Task deleted successfully."
+        return False, "Task not found or unauthorized."
 
     init_task_store()
     tasks = get_tasks()
@@ -403,15 +403,13 @@ def remove_task(task_id: str) -> bool:
         dates = get_dates()
         for d in dates:
             d_iso = d.isoformat()
-            if d_iso in active_ws["completion"]:
-                active_ws["completion"][d_iso].pop(task_id, None)
+            if d_iso in active_ws.get("completion", {}) and target["id"] in active_ws["completion"][d_iso]:
+                del active_ws["completion"][d_iso][target["id"]]
             chk_key = f"chk_{ws_id}_{d_iso}_{task_id}"
             st.session_state.pop(chk_key, None)
-
         save_all_stores()
-        return True
-
-    return False
+        return True, "Task deleted successfully."
+    return False, "Task not found."
 
 
 def get_daily_completion(date_obj: date, today_ref: date | None = None, tasks_list: list | None = None, completion_matrix: dict | None = None) -> dict:
