@@ -340,21 +340,26 @@ def rename_task(task_id: str, new_name: str) -> tuple[bool, str]:
 
 def update_task_metadata(
     task_id: str,
+    name: str,
     priority: str,
     description: str,
     recurrence: dict,
 ) -> tuple[bool, str]:
-    """Updates task priority, description, and recurrence."""
+    """Updates task name, priority, description, and recurrence."""
     active_ws = get_active_workspace()
     ws_id = active_ws["id"]
     user = get_current_user()
+
+    trimmed_name = name.strip()
+    if not trimmed_name:
+        return False, "Task name cannot be empty."
 
     if user:
         res = db_update_task(
             user["id"],
             ws_id,
             task_id,
-            {"priority": priority, "description": description, "recurrence": recurrence},
+            {"name": trimmed_name, "priority": priority, "description": description, "recurrence": recurrence},
         )
         if res:
             init_workspace_store()
@@ -366,6 +371,7 @@ def update_task_metadata(
     if not target or not isinstance(target, dict):
         return False, "Task not found."
 
+    target["name"] = trimmed_name
     if priority in PRIORITY_CHOICES:
         target["priority"] = priority
     target["description"] = description.strip()
