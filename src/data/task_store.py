@@ -61,6 +61,9 @@ def init_task_store() -> None:
     init_workspace_store()
     active_ws = get_active_workspace()
 
+    if active_ws.get("_task_store_initialized"):
+        return
+
     if "dates" not in active_ws:
         active_ws["dates"] = [date.today() + timedelta(days=i) for i in range(-7, 7)]
     if "tasks" not in active_ws:
@@ -115,6 +118,8 @@ def init_task_store() -> None:
             t_id = t["id"]
             if t_id not in completion[d_iso]:
                 completion[d_iso][t_id] = False
+                
+    active_ws["_task_store_initialized"] = True
 
 
 def get_dates() -> list[date]:
