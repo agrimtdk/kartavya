@@ -1,0 +1,87 @@
+{
+  "version": 4,
+  "active_workspace_id": "ws_sample_01",
+  "workspaces": [
+    {
+      "id": "ws_sample_01",
+      "name": "General Workspace",
+      "description": "Synthetic sample workspace for demo and testing.",
+      "dates": [
+        "2026-08-10",
+        "2026-08-11",
+        "2026-08-12"
+      ],
+      "tasks": [
+        {
+          "id": "task_demo_01",
+          "name": "Review Project Roadmap",
+          "priority": "High",
+          "description": "Inspect completed features and plan next milestones.",
+          "recurrence": {
+            "type": "weekdays",
+            "days": [0, 1, 2, 3, 4]
+          }
+        },
+        {
+          "id": "task_demo_02",
+          "name": "Morning Walk & Exercise",
+          "priority": "Medium",
+          "description": "30 minutes outdoor cardio.",
+          "recurrence": {
+            "type": "daily",
+            "days": []
+          }
+        },
+        {
+          "id": "task_demo_03",
+          "name": "Read Tech Documentation",
+          "priority": "Low",
+          "description": "Stay updated with architecture best practices.",
+          "recurrence": {
+            "type": "none",
+            "days": []
+          }
+        }
+      ],
+      "completion": {
+        "2026-08-10": {
+          "task_demo_01": true,
+          "task_demo_02": true,
+          "task_demo_03": false
+        },
+        "2026-08-11": {
+          "task_demo_01": true,
+          "task_demo_02": false,
+          "task_demo_03": false
+        }
+      },
+      "goals": [
+        {
+          "id": "goal_demo_01",
+          "title": "Complete 15 Tasks",
+          "goal_type": "task_count",
+          "target_value": 15.0,
+          "start_date": "2026-08-01",
+          "end_date": "2026-08-31",
+          "status": "active",
+          "created_at": "2026-08-01T10:00:00"
+        }
+      ],
+      "daily_target_pct": 80.0,
+      "focus_matrix": {
+        "2026-08-11": ["task_demo_01"]
+      }
+    }
+  ],
+  "reminders": [
+    {
+      "id": "rem_demo_01",
+      "title": "System Architecture Review",
+      "description": "Ensure deployment scripts and test suites pass.",
+      "deadline": "2026-08-15",
+      "priority": "High",
+      "completed": false,
+      "created_at": "2026-08-01T10:00:00"
+    }
+  ]
+}

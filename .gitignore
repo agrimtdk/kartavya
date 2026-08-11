@@ -1,0 +1,33 @@
+# Environment & Secrets
+.env
+.env.*
+!.env.example
+.streamlit/secrets.toml
+
+# Python
+__pycache__/
+*.py[cod]
+
+# Virtual Environment
+.venv/
+venv/
+ENV/
+
+# Local Data & Backups
+data/backups/
+data/daily_quote.json
+data/kartavya_data.json
+data/kartavya_data.json.bak
+data/kartavya_data.json.tmp
+
+# Scratch & Test Artifacts
+scratch/
+*.log
+
+# OS
+.DS_Store
+Thumbs.db
+
+*.sqlite
+*.sqlite3
+*.db
