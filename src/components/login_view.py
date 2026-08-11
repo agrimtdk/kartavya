@@ -42,8 +42,8 @@ def render_login_view() -> None:
                     if st.button("🔑 CONTINUE WITH GOOGLE OAUTH", use_container_width=True, type="primary", key="btn_oauth_google"):
                         st.login("google")
                 except Exception as e:
-                    st.error("⚠️ Google OAuth is not configured.")
-                    st.info("Please configure `.streamlit/secrets.toml` with your Google Client ID and Secret.")
+                    st.error(f"⚠️ Google OAuth Error: {str(e)}")
+                    st.info("Please check your Streamlit Cloud Secrets TOML structure.")
 
         # Local Testing Fallback
         if KARTAVYA_MODE == "local":
