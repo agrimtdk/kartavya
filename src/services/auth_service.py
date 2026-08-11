@@ -32,7 +32,11 @@ def get_current_user() -> dict | None:
     if st.session_state.get(SESSION_KEY_LOGGED_OUT, False):
         return None
 
-    # 1. Native Streamlit st.user (Google OAuth / OpenID Connect)
+    # 1. Check stored session auth user (Fast in-memory cache)
+    if SESSION_KEY_AUTH_USER in st.session_state and st.session_state[SESSION_KEY_AUTH_USER]:
+        return st.session_state[SESSION_KEY_AUTH_USER]
+
+    # 2. Native Streamlit st.user (Google OAuth / OpenID Connect)
     try:
         if hasattr(st, "user") and st.user and getattr(st.user, "email", None):
             email = str(st.user.email).strip().lower()
@@ -44,10 +48,6 @@ def get_current_user() -> dict | None:
             return user_data
     except Exception as e:
         logger.debug(f"st.user resolution note: {e}")
-
-    # 2. Checked stored session auth user
-    if SESSION_KEY_AUTH_USER in st.session_state and st.session_state[SESSION_KEY_AUTH_USER]:
-        return st.session_state[SESSION_KEY_AUTH_USER]
 
     return None
 

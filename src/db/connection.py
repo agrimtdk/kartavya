@@ -16,8 +16,7 @@ from src.db.models import Base
 
 logger = logging.getLogger(__name__)
 
-# Global Engine & Session Factory singletons
-_ENGINE = None
+# Global Session Factory singleton (engine is managed by st.cache_resource)
 _SESSION_FACTORY = None
 
 
@@ -61,27 +60,25 @@ def get_database_url() -> str:
 
     return db_url
 
-
+@st.cache_resource(show_spinner=False)
 def get_engine():
     """Returns singleton SQLAlchemy Engine with pooling configured for Neon PostgreSQL."""
-    global _ENGINE
-    if _ENGINE is None:
-        db_url = get_database_url()
-        is_sqlite = db_url.startswith("sqlite")
+    db_url = get_database_url()
+    is_sqlite = db_url.startswith("sqlite")
 
-        engine_kwargs = {}
-        if is_sqlite:
-            engine_kwargs["connect_args"] = {"check_same_thread": False}
-        else:
-            engine_kwargs["pool_size"] = int(os.getenv("DB_POOL_SIZE", "10"))
-            engine_kwargs["max_overflow"] = int(os.getenv("DB_MAX_OVERFLOW", "20"))
-            engine_kwargs["pool_pre_ping"] = True
-            engine_kwargs["pool_recycle"] = 300  # Recycle connections every 5 mins for serverless Neon DBs
+    engine_kwargs = {}
+    if is_sqlite:
+        engine_kwargs["connect_args"] = {"check_same_thread": False}
+    else:
+        engine_kwargs["pool_size"] = int(os.getenv("DB_POOL_SIZE", "10"))
+        engine_kwargs["max_overflow"] = int(os.getenv("DB_MAX_OVERFLOW", "20"))
+        engine_kwargs["pool_pre_ping"] = True
+        engine_kwargs["pool_recycle"] = 300  # Recycle connections every 5 mins for serverless Neon DBs
 
-        _ENGINE = create_engine(db_url, **engine_kwargs)
-        logger.info(f"Initialized SQLAlchemy Engine (SQLite: {is_sqlite})")
+    engine = create_engine(db_url, **engine_kwargs)
+    logger.info(f"Initialized SQLAlchemy Engine (SQLite: {is_sqlite})")
 
-    return _ENGINE
+    return engine
 
 
 def get_session_factory():
@@ -93,6 +90,7 @@ def get_session_factory():
     return _SESSION_FACTORY
 
 
+@st.cache_resource(show_spinner=False)
 def init_db() -> None:
     """Creates database tables idempotently if they do not exist."""
     try:
