@@ -146,17 +146,19 @@ def get_task_by_id(task_id: str) -> dict | None:
     return None
 
 
-def get_completion(date_obj: date, task_id: str, today_ref: date | None = None) -> bool:
-    """Check completion status for active workspace task."""
+def get_completion(date_obj: date, task_id: str, today_ref: date | None = None, completion_matrix: dict | None = None) -> bool:
+    """Check completion status for active workspace task using optional pre-loaded matrix."""
     t_ref = today_ref or date.today()
     if date_obj > t_ref:
         return False
 
-    init_task_store()
-    active_ws = get_active_workspace()
+    if completion_matrix is None:
+        init_task_store()
+        active_ws = get_active_workspace()
+        completion_matrix = active_ws.get("completion") or {}
+
     d_iso = date_obj.isoformat()
-    completion_dict = active_ws.get("completion") or {}
-    date_map = completion_dict.get(d_iso) or {}
+    date_map = completion_matrix.get(d_iso) or {}
     return bool(date_map.get(task_id, False))
 
 
@@ -406,10 +408,10 @@ def remove_task(task_id: str) -> bool:
     return False
 
 
-def get_daily_completion(date_obj: date, today_ref: date | None = None) -> dict:
-    """Calculates completion stats for a date in active workspace."""
+def get_daily_completion(date_obj: date, today_ref: date | None = None, tasks_list: list | None = None, completion_matrix: dict | None = None) -> dict:
+    """Calculates completion stats for a date in active workspace using pre-loaded matrices."""
     t_ref = today_ref or date.today()
-    tasks = get_tasks()
+    tasks = tasks_list if tasks_list is not None else get_tasks()
     applicable_tasks = [t for t in tasks if is_task_applicable_on_date(t, date_obj)]
     total = len(applicable_tasks)
     if total == 0 or date_obj > t_ref:
@@ -417,17 +419,21 @@ def get_daily_completion(date_obj: date, today_ref: date | None = None) -> dict:
 
     completed = sum(
         1 for t in applicable_tasks
-        if get_completion(date_obj, t["id"] if isinstance(t, dict) else str(t), today_ref=t_ref)
+        if get_completion(date_obj, t["id"] if isinstance(t, dict) else str(t), today_ref=t_ref, completion_matrix=completion_matrix)
     )
     pct = round((completed / total) * 100)
     return {"completed": completed, "total": total, "percentage": pct}
 
 
 def get_overall_completion(today_ref: date | None = None) -> dict:
-    """Calculates overall completion stats for active workspace."""
+    """Calculates overall completion stats for active workspace using optimized single-load matrices."""
     t_ref = today_ref or date.today()
     dates = get_dates()
     tasks = get_tasks()
+    
+    init_task_store()
+    active_ws = get_active_workspace()
+    completion_matrix = active_ws.get("completion") or {}
 
     total_possible = 0
     total_completed = 0
@@ -438,7 +444,7 @@ def get_overall_completion(today_ref: date | None = None) -> dict:
         if d <= t_ref:
             total_completed += sum(
                 1 for t in app_tasks
-                if get_completion(d, t["id"] if isinstance(t, dict) else str(t), today_ref=t_ref)
+                if get_completion(d, t["id"] if isinstance(t, dict) else str(t), today_ref=t_ref, completion_matrix=completion_matrix)
             )
 
     if total_possible == 0:

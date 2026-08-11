@@ -158,6 +158,10 @@ def render_timeline_grid() -> None:
     dates = get_dates()
     tasks = get_tasks()
     ws_id = get_active_workspace_id()
+    
+    from src.data.workspace_store import get_active_workspace
+    active_ws = get_active_workspace()
+    completion_matrix = active_ws.get("completion") or {}
 
     if not tasks:
         st.markdown(
@@ -258,7 +262,7 @@ def render_timeline_grid() -> None:
                 with row_cols[idx + 1]:
                     if is_app:
                         chk_key = f"chk_{ws_id}_{d_iso}_{t_id}"
-                        canonical_val = get_completion(d, t_id)
+                        canonical_val = get_completion(d, t_id, completion_matrix=completion_matrix)
 
                         st.checkbox(
                             label=t_name,
@@ -276,7 +280,7 @@ def render_timeline_grid() -> None:
                         )
 
             # Daily Completion % Cell
-            daily_stats = get_daily_completion(d)
+            daily_stats = get_daily_completion(d, tasks_list=tasks, completion_matrix=completion_matrix)
             pct = daily_stats["percentage"]
 
             if pct == 100:
