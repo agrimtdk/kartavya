@@ -12,8 +12,6 @@ from typing import Any
 from src.db.connection import get_db_session, init_db
 from src.db.models import User, Workspace, Task, CompletionRecord, Reminder, Goal
 
-# Initialize DB tables on import
-init_db()
 
 
 def get_or_create_user(email: str, display_name: str, avatar_url: str | None = None) -> dict:

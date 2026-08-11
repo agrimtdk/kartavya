@@ -20,7 +20,7 @@ from src.components.settings import render_settings_page
 from src.components.login_view import render_login_view
 from src.services.health_service import run_health_check
 from src.services.auth_service import is_authenticated, get_current_user
-from src.db.connection import DatabaseConnectionError
+from src.db.connection import DatabaseConnectionError, init_db
 
 
 def configure_page() -> None:
@@ -184,6 +184,7 @@ def main() -> None:
     apply_theme()
 
     try:
+        init_db()
         if not is_authenticated():
             render_login_view()
         else:

@@ -35,14 +35,15 @@ def render_login_view() -> None:
         st.markdown('<div class="neo-card" style="padding: 1.8rem; margin-top: 1.25rem;">', unsafe_allow_html=True)
         st.markdown("<h3 style='text-align: center; margin-top: 0;'>🔐 ACCOUNT AUTHENTICATION</h3>", unsafe_allow_html=True)
 
-        # 1. Native Streamlit Google OAuth Login Button
-        if hasattr(st, "login"):
-            try:
-                if st.button("🔑 CONTINUE WITH GOOGLE OAUTH", use_container_width=True, type="primary", key="btn_oauth_google"):
-                    st.login("google")
-            except Exception as e:
-                st.error("⚠️ Google OAuth is not configured locally.")
-                st.info("To test OAuth locally, please copy `.streamlit/secrets.toml.example` to `.streamlit/secrets.toml` and add your Google Client ID and Secret.")
+        # 1. Native Streamlit Google OAuth Login Button (Production Only)
+        if KARTAVYA_MODE == "production":
+            if hasattr(st, "login"):
+                try:
+                    if st.button("🔑 CONTINUE WITH GOOGLE OAUTH", use_container_width=True, type="primary", key="btn_oauth_google"):
+                        st.login("google")
+                except Exception as e:
+                    st.error("⚠️ Google OAuth is not configured.")
+                    st.info("Please configure `.streamlit/secrets.toml` with your Google Client ID and Secret.")
 
         # Local Testing Fallback
         if KARTAVYA_MODE == "local":

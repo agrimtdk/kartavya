@@ -17,7 +17,6 @@ SESSION_KEY_AUTH_USER = "kartavya_auth_user"
 SESSION_KEY_DEV_USER = "kartavya_dev_user_email"
 SESSION_KEY_LOGGED_OUT = "kartavya_explicitly_logged_out"
 
-
 def is_authenticated() -> bool:
     """Returns True if a user is currently authenticated."""
     return get_current_user() is not None
