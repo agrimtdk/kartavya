@@ -38,7 +38,12 @@ def save_all_stores() -> None:
 
 
 def init_workspace_store() -> None:
-    """Initializes workspace collection for authenticated user or local session."""
+    if (
+        SESSION_KEY_WORKSPACES in st.session_state
+        and SESSION_KEY_ACTIVE_WS_ID in st.session_state
+    ):
+        return
+
     user = get_current_user()
     if user:
         ws_list = db_get_user_workspaces(user["id"])
@@ -60,14 +65,6 @@ def init_workspace_store() -> None:
         if SESSION_KEY_ACTIVE_WS_ID not in st.session_state or st.session_state[SESSION_KEY_ACTIVE_WS_ID] not in valid_ids:
             st.session_state[SESSION_KEY_ACTIVE_WS_ID] = ws_list[0]["id"]
         return
-
-    if (
-        SESSION_KEY_WORKSPACES in st.session_state
-        and SESSION_KEY_ACTIVE_WS_ID in st.session_state
-        and SESSION_KEY_REMINDERS in st.session_state
-    ):
-        return
-
     saved_data = load_data()
     if (
         saved_data is not None
