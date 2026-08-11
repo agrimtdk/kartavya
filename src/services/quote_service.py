@@ -12,6 +12,7 @@ import html
 import urllib.request
 from datetime import date
 import logging
+import streamlit as st
 
 
 logger = logging.getLogger(__name__)
@@ -79,7 +80,7 @@ def _fetch_from_api() -> dict | None:
     return None
 
 
-
+@st.cache_data(ttl=86400, show_spinner=False)
 def get_daily_quote(today_ref: date | None = None) -> dict:
     """
     Returns the daily quote dict {"quote": str, "author": str}.
