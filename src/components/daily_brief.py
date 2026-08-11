@@ -53,6 +53,7 @@ def render_daily_brief() -> None:
     sorted_reminders = get_sorted_reminders()
     due_today_reminders = []
     overdue_reminders = []
+    upcoming_reminders = []
 
     for rem in sorted_reminders:
         if not rem.get("completed", False):
@@ -63,6 +64,8 @@ def render_daily_brief() -> None:
                     overdue_reminders.append(rem)
                 elif diff == 0:
                     due_today_reminders.append(rem)
+                elif 0 < diff <= 7:
+                    upcoming_reminders.append(rem)
 
     with st.container():
         brief_header = (
@@ -123,11 +126,19 @@ def render_daily_brief() -> None:
 
         with f2:
             st.markdown("<div style='margin-top: 0.5rem;'><strong>URGENT REMINDERS:</strong></div>", unsafe_allow_html=True)
-            if overdue_reminders or due_today_reminders:
+            if overdue_reminders or due_today_reminders or upcoming_reminders:
                 for r in overdue_reminders[:2]:
                     st.markdown(f"⚠️ **{r['title']}** (OVERDUE)")
                 for r in due_today_reminders[:2]:
                     st.markdown(f"🔔 **{r['title']}** (DUE TODAY)")
+                
+                displayed = min(2, len(overdue_reminders)) + min(2, len(due_today_reminders))
+                rem_allowed = max(0, 4 - displayed)
+                
+                for r in upcoming_reminders[:rem_allowed]:
+                    d_val = parse_date(r.get("deadline"))
+                    days_left = (d_val - today).days
+                    st.markdown(f"⏳ **{r['title']}** (IN {days_left} DAYS)")
             else:
                 st.caption("No overdue or urgent reminders.")
 
