@@ -89,9 +89,9 @@ def render_sidebar() -> None:
 
 def render_footer() -> None:
     """Render footer with version info, author credits, and playful random hex color generator."""
+    import secrets
     if "footer_hex_color" not in st.session_state:
-        r = lambda: random.randint(0, 255)
-        st.session_state["footer_hex_color"] = f"#{r():02X}{r():02X}{r():02X}"
+        st.session_state["footer_hex_color"] = f"#{secrets.token_hex(3).upper()}"
 
     cur_hex = st.session_state["footer_hex_color"]
 
@@ -109,14 +109,13 @@ def render_footer() -> None:
             unsafe_allow_html=True,
         )
         if st.button("🎲 ROLL RANDOM COLOR", use_container_width=True, key="btn_roll_hex_color"):
-            r = lambda: random.randint(0, 255)
-            st.session_state["footer_hex_color"] = f"#{r():02X}{r():02X}{r():02X}"
+            st.session_state["footer_hex_color"] = f"#{secrets.token_hex(3).upper()}"
             st.rerun()
 
     st.markdown(
         """
         <div style="margin-top: 0.5rem;">
-            <strong>kartavya v0.9 — Public Multi-User Release Edition</strong> • Built with ❤️ by <a href="https://linkedin.com/in/agrimtdk" target="_blank" style="color: var(--text); text-decoration: underline; font-weight: 700;">Agrim Sharma</a> 🇮🇳
+            <strong>kartavya v0.9</strong> • Built with ❤️ by <a href="https://linkedin.com/in/agrimtdk" target="_blank" style="color: var(--text); text-decoration: underline; font-weight: 700;">Agrim Sharma</a> 🇮🇳
         </div>
         </div>
         """,
