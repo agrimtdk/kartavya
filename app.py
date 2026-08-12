@@ -4,6 +4,14 @@ Main Streamlit Application Entry Point.
 Phase 9: Public Multi-User Architecture & Security Release.
 """
 
+import os
+import time
+
+# Enforce IST (Indian Standard Time) globally for date.today() and datetime.now()
+os.environ["TZ"] = "Asia/Kolkata"
+if hasattr(time, "tzset"):
+    time.tzset()
+
 import random
 import streamlit as st
 from src.config import APP_NAME, KARTAVYA_MODE
